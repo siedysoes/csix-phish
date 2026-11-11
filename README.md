@@ -1,5 +1,7 @@
 # csix-phish
 
+![csix-phish banner](assets/banner.png)
+
 **Pemeriksa URL phishing offline — heuristik transparan, tanpa jaringan, murni Go.**
 
 [![CI](https://github.com/siedysoes/csix-phish/actions/workflows/ci.yml/badge.svg)](https://github.com/siedysoes/csix-phish/actions/workflows/ci.yml)

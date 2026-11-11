@@ -1,5 +1,7 @@
 # csix-phish
 
+![csix-phish banner](assets/banner.png)
+
 **Pemeriksa URL phishing offline — heuristik transparan, tanpa jaringan.**
 
 > English documentation: [README.md](README.md)
