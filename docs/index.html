@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self'">
+  <title>CSIX Phish — Cek URL Phishing Offline</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>CSIX <span class="accent">PHISH</span></h1>
+    <p class="tagline">Pemeriksa URL phishing — heuristik, transparan, <strong>100% offline</strong></p>
+  </header>
+
+  <main>
+    <section class="input-row">
+      <input id="url" type="text" placeholder="tempel URL mencurigakan di sini..." autocomplete="off" spellcheck="false">
+      <button id="check">CEK</button>
+    </section>
+
+    <section class="samples">
+      <span>coba:</span>
+      <button class="chip" data-url="https://paypa1-secure.com/login">paypa1-secure.com</button>
+      <button class="chip" data-url="https://paypal.com.security-check.net/signin">paypal.com.security-check.net</button>
+      <button class="chip" data-url="https://google.com">google.com</button>
+    </section>
+
+    <section id="result" hidden>
+      <div class="score-card">
+        <div class="score-number" id="score">0</div>
+        <div class="score-meta">
+          <div class="level" id="level">—</div>
+          <div class="bar"><div class="bar-fill" id="barfill"></div></div>
+          <div class="meta" id="meta"></div>
+        </div>
+      </div>
+      <div id="signals"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Analisis dijalankan sepenuhnya di browser Anda — <strong>tidak ada data yang dikirim ke server mana pun</strong>.</p>
+    <p>Bagian dari proyek <a href="https://github.com/siedysoes/csix-phish">CSIX Security</a> · heuristik, bukan vonis akhir — selalu verifikasi manual.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

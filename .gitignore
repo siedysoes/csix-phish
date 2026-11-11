@@ -1,0 +1,6 @@
+*.exe
+*.out
+*.test
+*.log
+dist/
+csix-phish
