@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release (e.g. v0.1.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Verify
+        run: |
+          go vet ./...
+          go test ./...
+
+      - name: Build binaries
+        env:
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          NAME="${GITHUB_REPOSITORY#*/}"
+          VER="${TAG#v}"
+          mkdir -p dist
+          for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64; do
+            GOOS="${target%/*}"
+            GOARCH="${target#*/}"
+            EXT=""
+            if [ "$GOOS" = "windows" ]; then EXT=".exe"; fi
+            BIN="${NAME}-${GOOS}-${GOARCH}${EXT}"
+            echo "building $BIN"
+            CGO_ENABLED=0 GOOS="$GOOS" GOARCH="$GOARCH" go build -trimpath \
+              -ldflags "-s -w -X main.version=$VER" \
+              -o "dist/$BIN" .
+            if [ "$GOOS" = "windows" ]; then
+              (cd dist && zip -q "${BIN%.exe}.zip" "$BIN" && rm "$BIN")
+            else
+              (cd dist && tar -czf "${BIN}.tar.gz" "$BIN" && rm "$BIN")
+            fi
+          done
+          (cd dist && sha256sum * > checksums.txt)
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          NAME="${GITHUB_REPOSITORY#*/}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* \
+              --title "$NAME $TAG" \
+              --generate-notes
+          fi

@@ -15,6 +15,9 @@ bukan black box. **100% offline** — URL tidak pernah dikirim ke server.
 
 ## Instalasi & Pakai
 
+Unduh binary siap pakai di [halaman Releases](https://github.com/siedysoes/csix-phish/releases/latest)
+(Windows / Linux / macOS, amd64 + arm64), atau:
+
 ```sh
 go install github.com/siedysoes/csix-phish@latest
 
@@ -26,8 +29,9 @@ csix-phish --json https://google.com
 
 ## Web Demo (GitHub Pages)
 
-Folder `docs/` berisi versi web yang berjalan 100% di browser (tanpa server).
-Aktifkan: **Settings → Pages → Deploy from a branch → main → /docs**.
+Folder `docs/` berisi versi web yang berjalan 100% di browser (tanpa server):
+**https://siedysoes.github.io/csix-phish/** — aktifkan lewat
+**Settings → Pages → Deploy from a branch → main → /docs**.
 
 ## Checklist Sebelum Push ke GitHub
 

@@ -48,7 +48,7 @@ function check(raw) {
     if (!s.includes("://")) s = "http://" + s;
     u = new URL(s);
   } catch (e) {
-    throw new Error("URL tidak valid");
+    throw new Error("Invalid URL");
   }
 
   const host = u.hostname.toLowerCase();
@@ -60,43 +60,43 @@ function check(raw) {
   // identitas host
   const ip = parseIPv4(host);
   if (ip !== null) {
-    if (isPrivateIP(ip)) add("private-ip", "Host adalah IP privat/loopback (target internal)", 5);
-    else add("ip-host", "Host berupa alamat IP mentah, bukan domain", 35);
+    if (isPrivateIP(ip)) add("private-ip", "Host is a private/loopback IP (internal target)", 5);
+    else add("ip-host", "Host is a raw IP address, not a domain", 35);
   } else if (/^0x[0-9a-f]+$/i.test(host) || /^[0-9]+$/.test(host)) {
-    add("numeric-host", "Host berupa angka desimal/hex (obfuskasi IP)", 30);
+    add("numeric-host", "Host is a decimal/hex number (obfuscated IP)", 30);
   }
-  if (host.includes("xn--")) add("punycode", "Host punycode (xn--) — kemungkinan serangan homograph IDN", 30);
-  if (/[^\x00-\x7f]/.test(host)) add("non-ascii-host", "Host mengandung karakter non-ASCII", 20);
+  if (host.includes("xn--")) add("punycode", "Punycode host (xn--) — possible IDN homograph attack", 30);
+  if (/[^\x00-\x7f]/.test(host)) add("non-ascii-host", "Host contains non-ASCII characters", 20);
 
   // TLD & shortener
-  if (tld && RISKY_TLDS.has(tld)) add("risky-tld", `TLD berisiko tinggi yang sering dipakai phishing (.${tld})`, 15);
-  if (SHORTENERS.has(domain) || SHORTENERS.has(host)) add("shortener", "URL shortener — tujuan akhir tidak bisa dinilai dari link", 20);
+  if (tld && RISKY_TLDS.has(tld)) add("risky-tld", `High-risk TLD frequently used for phishing (.${tld})`, 15);
+  if (SHORTENERS.has(domain) || SHORTENERS.has(host)) add("shortener", "URL shortener — the final destination cannot be judged from the link", 20);
 
   // karakter domain
   const hyphens = (sld.match(/-/g) || []).length;
-  if (hyphens >= 3) add("many-hyphens", `Banyak tanda hubung pada domain (${hyphens})`, 10);
-  if (labels.length >= 5) add("deep-subdomain", `Subdomain bertingkat dalam (${labels.length} label)`, 10);
-  else if (labels.length === 4) add("deep-subdomain", "Subdomain bertingkat (4 label)", 5);
+  if (hyphens >= 3) add("many-hyphens", `Many hyphens in the domain (${hyphens})`, 10);
+  if (labels.length >= 5) add("deep-subdomain", `Deeply nested subdomains (${labels.length} labels)`, 10);
+  else if (labels.length === 4) add("deep-subdomain", "Nested subdomains (4 labels)", 5);
 
   // skema & port
   const isLocal = (ip !== null && isPrivateIP(ip)) || host === "localhost" || host.startsWith("localhost.");
-  if (!isLocal && u.protocol !== "https:") add("http-scheme", "Skema bukan HTTPS — lalu lintas tidak terenkripsi", 5);
-  if (!isLocal && u.port && u.port !== "80" && u.port !== "443") add("nonstandard-port", `Port tidak umum (:${u.port})`, 10);
-  if (u.username || u.password) add("userinfo", "URL memuat kredensial (user:pass@host) — trik redirect klasik", 30);
+  if (!isLocal && u.protocol !== "https:") add("http-scheme", "Scheme is not HTTPS — traffic is unencrypted", 5);
+  if (!isLocal && u.port && u.port !== "80" && u.port !== "443") add("nonstandard-port", `Uncommon port (:${u.port})`, 10);
+  if (u.username || u.password) add("userinfo", "URL contains credentials (user:pass@host) — classic redirect trick", 30);
 
   // isi URL
   const full = u.toString();
-  if (full.length > 120) add("url-too-long", `URL sangat panjang (${full.length} karakter)`, 8);
+  if (full.length > 120) add("url-too-long", `Very long URL (${full.length} characters)`, 8);
   const enc = full.match(/%[0-9A-Fa-f]{2}/g) || [];
-  if (enc.length >= 3) add("excessive-encoding", `Banyak encoding %XX (${enc.length}) — kemungkinan menyembunyikan tujuan`, 10);
+  if (enc.length >= 3) add("excessive-encoding", `Excessive %XX encoding (${enc.length}) — may hide the real destination`, 10);
   const query = u.search.replace(/^\?/, "");
   if (/(?:password|passwd|pwd|email|username|user|login)=/i.test(query)) {
-    add("credential-params", "Query mengandung parameter kredensial (password/email/user)", 12);
+    add("credential-params", "Query string contains credential parameters (password/email/user)", 12);
   }
   const kw = keywordsIn(u.pathname + "?" + query);
   if (kw.length > 0) {
     const w = Math.min(8 * kw.length, 24);
-    add("suspicious-keywords", `Kata kunci mencurigakan: ${kw.join(", ")}`, w);
+    add("suspicious-keywords", `Suspicious keywords: ${kw.join(", ")}`, w);
   }
 
   // typosquatting / merek
@@ -138,17 +138,17 @@ function checkBrands(sld, host, add) {
   const norm = leetFold(sld);
   for (const b of BRANDS) {
     if (norm === b) {
-      if (sld !== b) add("typosquat", `Domain menyerupai merek "${b}" (substitusi karakter)`, 40);
+      if (sld !== b) add("typosquat", `Domain resembles brand "${b}" (character substitution)`, 40);
       continue;
     }
     const d = levenshtein(norm, b);
-    if (d === 1 && b.length >= 5) { add("typosquat", `Domain mendekati merek "${b}" (jarak ${d})`, 40); continue; }
-    if (d === 2 && b.length >= 6) { add("brand-similar", `Domain mirip merek "${b}"`, 20); continue; }
+    if (d === 1 && b.length >= 5) { add("typosquat", `Domain is close to brand "${b}" (distance ${d})`, 40); continue; }
+    if (d === 2 && b.length >= 6) { add("brand-similar", `Domain similar to brand "${b}"`, 20); continue; }
     let matched = false;
     for (const tok of norm.split("-")) {
-      if (tok === b && sld !== b) { add("brand-token", `Domain mengandung merek "${b}"`, 35); matched = true; break; }
+      if (tok === b && sld !== b) { add("brand-token", `Domain contains brand "${b}"`, 35); matched = true; break; }
     }
-    if (!matched && norm.includes(b)) add("brand-substring", `Domain mengandung nama merek "${b}"`, 15);
+    if (!matched && norm.includes(b)) add("brand-substring", `Domain contains the brand name "${b}"`, 15);
   }
   // merek di subdomain
   const parts = host.split(".");
@@ -159,7 +159,7 @@ function checkBrands(sld, host, add) {
     const nl = leetFold(l);
     for (const b of BRANDS) {
       if (nl === b || (b.length >= 5 && levenshtein(nl, b) <= 1)) {
-        add("brand-subdomain", `Merek "${b}" muncul di subdomain — trik penipuan`, 35);
+        add("brand-subdomain", `Brand "${b}" appears in the subdomain — deception trick`, 35);
         break outer;
       }
     }
@@ -227,7 +227,7 @@ function render(res) {
   if (res.signals.length === 0) {
     const p = document.createElement("p");
     p.className = "clean";
-    p.textContent = "✓ Tidak ada sinyal risiko yang terdeteksi.";
+    p.textContent = "✓ No risk signals detected.";
     box.appendChild(p);
     return;
   }

@@ -1,28 +1,28 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self'">
-  <title>CSIX Phish — Cek URL Phishing Offline</title>
+  <title>CSIX Phish — Offline Phishing URL Checker</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
     <h1>CSIX <span class="accent">PHISH</span></h1>
-    <p class="tagline">Pemeriksa URL phishing — heuristik, transparan, <strong>100% offline</strong></p>
+    <p class="tagline">Phishing URL checker — transparent heuristics, <strong>100% offline</strong></p>
   </header>
 
   <main>
     <section class="input-row">
-      <input id="url" type="text" placeholder="tempel URL mencurigakan di sini..." autocomplete="off" spellcheck="false">
-      <button id="check">CEK</button>
+      <input id="url" type="text" placeholder="paste a suspicious URL here..." autocomplete="off" spellcheck="false">
+      <button id="check">CHECK</button>
     </section>
 
     <section class="samples">
-      <span>coba:</span>
+      <span>try:</span>
       <button class="chip" data-url="https://paypa1-secure.com/login">paypa1-secure.com</button>
       <button class="chip" data-url="https://paypal.com.security-check.net/signin">paypal.com.security-check.net</button>
       <button class="chip" data-url="https://google.com">google.com</button>
@@ -42,8 +42,8 @@
   </main>
 
   <footer>
-    <p>Analisis dijalankan sepenuhnya di browser Anda — <strong>tidak ada data yang dikirim ke server mana pun</strong>.</p>
-    <p>Bagian dari proyek <a href="https://github.com/siedysoes/csix-phish">CSIX Security</a> · heuristik, bukan vonis akhir — selalu verifikasi manual.</p>
+    <p>Analysis runs entirely in your browser — <strong>no data is ever sent to any server</strong>.</p>
+    <p>Part of the <a href="https://github.com/siedysoes/csix-phish">CSIX Security</a> · heuristics, not a final verdict — always verify manually.</p>
   </footer>
 
   <script src="app.js"></script>

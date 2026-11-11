@@ -115,36 +115,36 @@ func Check(raw string) (Result, error) {
 	// --- identitas host ---
 	if ip := net.ParseIP(host); ip != nil {
 		if ip.IsPrivate() || ip.IsLoopback() {
-			add("private-ip", "Host adalah IP privat/loopback (target internal)", 5)
+			add("private-ip", "Host is a private/loopback IP (internal target)", 5)
 		} else {
-			add("ip-host", "Host berupa alamat IP mentah, bukan domain", 35)
+			add("ip-host", "Host is a raw IP address, not a domain", 35)
 		}
 	} else if isNumericHost(host) {
-		add("numeric-host", "Host berupa angka desimal/hex (obfuskasi IP)", 30)
+		add("numeric-host", "Host is a decimal/hex number (obfuscated IP)", 30)
 	}
 	if strings.Contains(host, "xn--") {
-		add("punycode", "Host punycode (xn--) — kemungkinan serangan homograph IDN", 30)
+		add("punycode", "Punycode host (xn--) — possible IDN homograph attack", 30)
 	}
 	if hasNonASCII(host) {
-		add("non-ascii-host", "Host mengandung karakter non-ASCII", 20)
+		add("non-ascii-host", "Host contains non-ASCII characters", 20)
 	}
 
 	// --- TLD & shortener ---
 	if tld != "" && riskyTLDs[tld] {
-		add("risky-tld", "TLD berisiko tinggi yang sering dipakai phishing (."+tld+")", 15)
+		add("risky-tld", "High-risk TLD frequently used for phishing (."+tld+")", 15)
 	}
 	if shorteners[domain] || shorteners[host] {
-		add("shortener", "URL shortener — tujuan akhir tidak bisa dinilai dari link", 20)
+		add("shortener", "URL shortener — the final destination cannot be judged from the link", 20)
 	}
 
 	// --- karakter domain ---
 	if c := strings.Count(sld, "-"); c >= 3 {
-		add("many-hyphens", "Banyak tanda hubung pada domain ("+strconv.Itoa(c)+")", 10)
+		add("many-hyphens", "Many hyphens in the domain ("+strconv.Itoa(c)+")", 10)
 	}
 	if len(labels) >= 5 {
-		add("deep-subdomain", "Subdomain bertingkat dalam ("+strconv.Itoa(len(labels))+" label)", 10)
+		add("deep-subdomain", "Deeply nested subdomains ("+strconv.Itoa(len(labels))+" labels)", 10)
 	} else if len(labels) == 4 {
-		add("deep-subdomain", "Subdomain bertingkat (4 label)", 5)
+		add("deep-subdomain", "Nested subdomains (4 labels)", 5)
 	}
 
 	// --- skema & port ---
@@ -152,28 +152,28 @@ func Check(raw string) (Result, error) {
 	isLocal := (ip != nil && (ip.IsPrivate() || ip.IsLoopback())) ||
 		host == "localhost" || strings.HasPrefix(host, "localhost.")
 	if !isLocal && u.Scheme != "https" {
-		add("http-scheme", "Skema bukan HTTPS — lalu lintas tidak terenkripsi", 5)
+		add("http-scheme", "Scheme is not HTTPS — traffic is unencrypted", 5)
 	}
 	if !isLocal {
 		if p := u.Port(); p != "" && p != "80" && p != "443" {
-			add("nonstandard-port", "Port tidak umum (:"+p+")", 10)
+			add("nonstandard-port", "Uncommon port (:"+p+")", 10)
 		}
 	}
 	if u.User != nil {
-		add("userinfo", "URL memuat kredensial (user:pass@host) — trik redirect klasik", 30)
+		add("userinfo", "URL contains credentials (user:pass@host) — classic redirect trick", 30)
 	}
 
 	// --- isi URL ---
 	full := u.String()
 	if len(full) > 120 {
-		add("url-too-long", "URL sangat panjang ("+strconv.Itoa(len(full))+" karakter)", 8)
+		add("url-too-long", "Very long URL ("+strconv.Itoa(len(full))+" characters)", 8)
 	}
 	if n := len(pctEncodedRE.FindAllString(full, -1)); n >= 3 {
-		add("excessive-encoding", "Banyak encoding %XX ("+strconv.Itoa(n)+") — kemungkinan menyembunyikan tujuan", 10)
+		add("excessive-encoding", "Excessive %XX encoding ("+strconv.Itoa(n)+") — may hide the real destination", 10)
 	}
 	q := u.RawQuery
 	if credParamRE.MatchString(q) {
-		add("credential-params", "Query mengandung parameter kredensial (password/email/user)", 12)
+		add("credential-params", "Query string contains credential parameters (password/email/user)", 12)
 	}
 	kw := keywordsIn(u.Path + "?" + q)
 	if len(kw) > 0 {
@@ -181,7 +181,7 @@ func Check(raw string) (Result, error) {
 		if w > 24 {
 			w = 24
 		}
-		add("suspicious-keywords", "Kata kunci mencurigakan: "+strings.Join(kw, ", "), w)
+		add("suspicious-keywords", "Suspicious keywords: "+strings.Join(kw, ", "), w)
 	}
 
 	// --- typosquatting / merek ---
@@ -205,30 +205,30 @@ func checkBrands(sld, host string, labels []string, add func(id, desc string, w 
 		if norm == b {
 			if sld != b {
 				// leet substitution, mis. paypa1 -> paypal
-				add("typosquat", "Domain menyerupai merek \""+b+"\" (substitusi karakter)", 40)
+				add("typosquat", "Domain resembles brand \""+b+"\" (character substitution)", 40)
 			}
 			continue
 		}
 		d := levenshtein(norm, b)
 		if d == 1 && len(b) >= 5 {
-			add("typosquat", "Domain mendekati merek \""+b+"\" (jarak "+strconv.Itoa(d)+")", 40)
+			add("typosquat", "Domain is close to brand \""+b+"\" (distance "+strconv.Itoa(d)+")", 40)
 			continue
 		}
 		if d == 2 && len(b) >= 6 {
-			add("brand-similar", "Domain mirip merek \""+b+"\"", 20)
+			add("brand-similar", "Domain similar to brand \""+b+"\"", 20)
 			continue
 		}
 		// merek sebagai token di antara tanda hubung: secure-paypal-login.com
 		matched := false
 		for _, tok := range strings.Split(norm, "-") {
 			if tok == b && sld != b {
-				add("brand-token", "Domain mengandung merek \""+b+"\"", 35)
+				add("brand-token", "Domain contains brand \""+b+"\"", 35)
 				matched = true
 				break
 			}
 		}
 		if !matched && strings.Contains(norm, b) {
-			add("brand-substring", "Domain mengandung nama merek \""+b+"\"", 15)
+			add("brand-substring", "Domain contains the brand name \""+b+"\"", 15)
 		}
 	}
 	// merek muncul di subdomain (label sebelum registrable domain)
@@ -245,7 +245,7 @@ func checkBrands(sld, host string, labels []string, add func(id, desc string, w 
 		nl := leetFold(l)
 		for _, b := range brands {
 			if nl == b || (len(b) >= 5 && levenshtein(nl, b) <= 1) {
-				add("brand-subdomain", "Merek \""+b+"\" muncul di subdomain — trik penipuan", 35)
+				add("brand-subdomain", "Brand \""+b+"\" appears in the subdomain — deception trick", 35)
 				return
 			}
 		}

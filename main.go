@@ -12,7 +12,7 @@ import (
 	"github.com/siedysoes/csix-phish/internal/ui"
 )
 
-const version = "0.1.0"
+var version = "0.1.0"
 
 func main() {
 	var (
@@ -21,10 +21,10 @@ func main() {
 		noColor     bool
 		showVersion bool
 	)
-	flag.BoolVar(&jsonOut, "json", false, "output JSON")
-	flag.IntVar(&threshold, "threshold", 40, "skor minimal yang dianggap berbahaya (exit 1)")
-	flag.BoolVar(&noColor, "no-color", false, "matikan warna output")
-	flag.BoolVar(&showVersion, "version", false, "tampilkan versi")
+	flag.BoolVar(&jsonOut, "json", false, "JSON output")
+	flag.IntVar(&threshold, "threshold", 40, "minimum score considered dangerous (exit 1)")
+	flag.BoolVar(&noColor, "no-color", false, "disable colored output")
+	flag.BoolVar(&showVersion, "version", false, "print version")
 	flag.Parse()
 
 	if showVersion {
@@ -37,7 +37,7 @@ func main() {
 
 	urls := flag.Args()
 	if len(urls) == 0 {
-		fmt.Fprintln(os.Stderr, "penggunaan: csix-phish <url> [url...]   (contoh: csix-phish https://paypa1.com)")
+		fmt.Fprintln(os.Stderr, "usage: csix-phish <url> [url...]   (example: csix-phish https://paypa1.com)")
 		fmt.Fprintln(os.Stderr, "           csix-phish --json <url>")
 		os.Exit(2)
 	}
@@ -47,7 +47,7 @@ func main() {
 	for _, raw := range urls {
 		res, err := phish.Check(raw)
 		if err != nil {
-			warn("URL tidak valid: " + raw)
+			warn("invalid URL: " + raw)
 			continue
 		}
 		results = append(results, res)
@@ -75,7 +75,7 @@ func main() {
 			printResult(res)
 			fmt.Println()
 		}
-		fmt.Println(ui.Wrap(ui.Gray, "analisis 100% offline — URL tidak pernah dikirim ke server mana pun"))
+		fmt.Println(ui.Wrap(ui.Gray, "100% offline analysis — URLs are never sent to any server"))
 	}
 
 	if highRisk {
@@ -101,11 +101,11 @@ func printResult(res phish.Result) {
 	}
 
 	bar := bar(res.Score)
-	fmt.Printf("  %-8s %d/100  %s  %s\n", "Skor", res.Score, bar, ui.Wrap(levelColor, res.Level))
+	fmt.Printf("  %-8s %d/100  %s  %s\n", "Score", res.Score, bar, ui.Wrap(levelColor, res.Level))
 
 	if len(res.Signals) > 0 {
 		fmt.Println()
-		fmt.Println(ui.Wrap(ui.Gray, "  Sinyal risiko:"))
+		fmt.Println(ui.Wrap(ui.Gray, "  Risk signals:"))
 		for _, s := range res.Signals {
 			fmt.Printf("   %s [%s] %s\n", ui.Wrap(ui.Gray, "•"), ui.Wrap(ui.Yellow, fmt.Sprintf("%2d", s.Weight)), s.Desc)
 		}
@@ -121,7 +121,7 @@ func bar(score int) string {
 }
 
 func warn(msg string) {
-	fmt.Fprintln(os.Stderr, ui.Wrap(ui.Yellow, "peringatan: ")+msg)
+	fmt.Fprintln(os.Stderr, ui.Wrap(ui.Yellow, "warning: ")+msg)
 }
 
 func fatal(msg string) {
